@@ -14,11 +14,19 @@ class PokesearchTests: XCTestCase {
     
     func testTopPokemonsList(){
         sut = SwipingCollectionViewController()
-        sut.setListOfPokemons()
         
-        let number = sut.listOfTopPokemons.count
-        
-        XCTAssertEqual(number, 4)
+        let client = sut.httpClient
+        let exp = expectation(description: "Loading pokemons")
+
+        client.getPokemonsResource { (data) in
+            if let _ = data{
+                
+                exp.fulfill()
+            }
+        }
+        let number = client.getResources().count
+        waitForExpectations(timeout: 10)
+        XCTAssertNotNil(number)
     }
     
     func testHelloWorld(){

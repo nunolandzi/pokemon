@@ -16,6 +16,10 @@ final class HTTPClient{
         return listOfPokemons
     }
     
+    func getResources() -> [Result] {
+        return listOfpokemonsResourceResults
+    }
+    
     func getPokemonsResource(completion:@escaping (NSData?)->()){
         URLSession.shared.dataTask(with: URL(string: "https://pokeapi.co/api/v2/pokemon?limit=100&offset=0")!) { (data, respone, error) in
             guard let data = data else { return }

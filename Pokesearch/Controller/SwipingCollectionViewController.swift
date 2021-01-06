@@ -10,8 +10,8 @@ import UIKit
 class SwipingCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
 
     private let reuseIdentifier = "Cell"
-    private let httpClient = HTTPClient()
-    private var listOfTopPokemons:[Pokemon] = []
+    let httpClient = HTTPClient()
+    var listOfTopPokemons:[Pokemon] = []
     private let topExperienceLevel:Int = 227
     
     private let pageControl: UIPageControl = {
@@ -50,23 +50,14 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
                         self.getTopByExperience(listOfPokemons: list)
                         //Reload data to show pokemons after getting them from server
                         DispatchQueue.main.async {
-                            self.collectionView.reloadData()
                             self.pageControl.numberOfPages = self.listOfTopPokemons.count
+                            self.collectionView.reloadData()
+                            
                         }
                     }
                 }
             }
         }
-       /* httpClient.getTopPokemonsJSON { (data) in
-            if let _ = data{
-                self.listOfTopPokemons = self.httpClient.getTopPokemons()
-                
-                DispatchQueue.main.async {
-                    self.collectionView.reloadData()
-                    self.pageControl.numberOfPages = self.listOfTopPokemons.count
-                }
-            }
-        }*/
     }
     
     
