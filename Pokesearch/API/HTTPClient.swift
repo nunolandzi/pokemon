@@ -8,71 +8,91 @@
 import UIKit
 
 final class HTTPClient{
-    private var listOfpokemonsResourceResults:[Result] = []
-    private var listOfPokemons:[Pokemon] = []
+    private var urlString = "https://pokeapi.co/api/v2/pokemon?limit=20&offset="
+    var isPaginating = false
+    private let topExperienceLevel:Int = 226
+    var listofPokemons:[Pokemon] = []
     
     
-    func getPokemons() -> [Pokemon] {
-        return listOfPokemons
+    func fetchTopPokemons(url: URL,completion: @escaping (Result<Pokemon, Error>)->Void){
+        URLSession.shared.dataTask(with: url) { (data, respone, error) in
+            guard let data = data else { return }
+            
+            do{
+                let jsonPokemons = try JSONDecoder().decode(ResourceForSpecificPokemon.self, from: data)
+                
+                let newPokemon:Pokemon?
+                
+                //Set pokemon only if base experience is more than top
+                if jsonPokemons.base_experience > self.topExperienceLevel{
+                            
+                    //Check whether pokemon has image url or not
+                    if let imageUrlString = jsonPokemons.sprites.front_default{
+                        let data = try Data(contentsOf: URL(string: imageUrlString)!)
+                        let image = UIImage(data: data)
+                        newPokemon = Pokemon(id: jsonPokemons.id, name: jsonPokemons.name, image: image!, weight: jsonPokemons.weight,heigt: jsonPokemons.height, base_experience: jsonPokemons.base_experience, ability: jsonPokemons.abilities.first!.ability.name)
+                        
+                    }else{
+                        newPokemon = Pokemon(id: jsonPokemons.id,name: jsonPokemons.name, image: UIImage(named: "pokemon")!, weight: jsonPokemons.weight, heigt: jsonPokemons.height,base_experience: jsonPokemons.base_experience,ability: jsonPokemons.abilities.first!.ability.name)
+                    }
+                    
+                    return completion(.success(newPokemon!))
+                    }
+                        
+                        }catch let jsonErr{
+                            print("Error serializing o json:", jsonErr)
+                        }
+                    }.resume()
     }
     
-    func getResources() -> [Result] {
-        return listOfpokemonsResourceResults
-    }
     
-    func getPokemonsResource(completion:@escaping (NSData?)->()){
-        URLSession.shared.dataTask(with: URL(string: "https://pokeapi.co/api/v2/pokemon?limit=100&offset=0")!) { (data, respone, error) in
+    func fetchPokemonsResource(offset:String, completion: @escaping (Result<[Res], Error>)->Void){
+        let urlWithOffset = urlString + offset
+        URLSession.shared.dataTask(with: URL(string: urlWithOffset)!) { (data, respone, error) in
             guard let data = data else { return }
             
             do{
                 
                 let jsonResources = try JSONDecoder().decode(Resource.self, from: data)
-                    
-                self.listOfpokemonsResourceResults = jsonResources.results
                 
+                return completion(.success( jsonResources.results))
                 
-                return completion(data as NSData)
                 }catch let jsonErr{
                     print("Erro ao serializar o json:", jsonErr)
                 }
             }.resume()
-        
     }
     
     
-    func getListOfPokemonsJSON(completion:@escaping (NSData?)->()){
+    
+    
+    func fetchPokemons(url:URL, completion: @escaping (Result<Pokemon, Error>)->Void){
         
-        listOfpokemonsResourceResults.forEach { (result) in
-            
-            URLSession.shared.dataTask(with: result.url) { (data, respone, error) in
+        URLSession.shared.dataTask(with: url) { (data, respone, error) in
+        
             guard let data = data else { return }
-            
             do{
-                
                 let jsonPokemons = try JSONDecoder().decode(ResourceForSpecificPokemon.self, from: data)
-                    
-                //Create new pokemon object
-                let newPokemon:Pokemon?
+                            
+                        //Create new pokemon object
+                        let newPokemon:Pokemon?
+                        
+                        //Check whether pokemon has image url or not
+                        if let imageUrlString = jsonPokemons.sprites.front_default{
+                            let data = try Data(contentsOf: URL(string: imageUrlString)!)
+                            let image = UIImage(data: data)
+                            newPokemon = Pokemon(id: jsonPokemons.id, name: jsonPokemons.name, image: image!, weight: jsonPokemons.weight,heigt: jsonPokemons.height, base_experience: jsonPokemons.base_experience, ability: jsonPokemons.abilities.first!.ability.name)
+                        }else{
+                            newPokemon = Pokemon(id: jsonPokemons.id,name: jsonPokemons.name, image: UIImage(named: "pokemon")!, weight: jsonPokemons.weight, heigt: jsonPokemons.height,base_experience: jsonPokemons.base_experience,ability: jsonPokemons.abilities.first!.ability.name)
+                        }
                 
-                //Check whether pokemon has image url or not
-                if let imageUrlString = jsonPokemons.sprites.front_default{
-                    let data = try Data(contentsOf: URL(string: imageUrlString)!)
-                    let image = UIImage(data: data)
-                    newPokemon = Pokemon(id: jsonPokemons.id, name: jsonPokemons.name, image: image!, weight: jsonPokemons.weight,heigt: jsonPokemons.height, base_experience: jsonPokemons.base_experience, ability: jsonPokemons.abilities.first!.ability.name)
-                }else{
-                    newPokemon = Pokemon(id: jsonPokemons.id,name: jsonPokemons.name, image: UIImage(named: "pokemon")!, weight: jsonPokemons.weight, heigt: jsonPokemons.height,base_experience: jsonPokemons.base_experience,ability: jsonPokemons.abilities.first!.ability.name)
-                }
-                
-                self.listOfPokemons.append(newPokemon!)
-                
-                return completion(data as NSData)
-                }catch let jsonErr{
-                    print("Erro ao serializar o json:", jsonErr)
-                }
-            }.resume()
+                completion(.success(newPokemon!))
             
-        }
-        
+            }catch let jsonErr{
+                            print("Erro ao serializar o json:", jsonErr)
+                        }
+                    }.resume()
+                
     }
     
     func postFavoritePokemonJSON(pokemondata: [PokemonData]) {

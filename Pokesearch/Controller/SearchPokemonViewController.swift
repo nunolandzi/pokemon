@@ -14,6 +14,8 @@ class SearchPokemonViewController: UIViewController {
     private let isOnline = true
     private var listOfPokemons:[Pokemon] = []
     private var filteredPokemons:[Pokemon] = []
+    private var isFetching = false
+    private var offset = 0
     
     let searchController = UISearchController(searchResultsController: nil)
     
@@ -49,28 +51,49 @@ class SearchPokemonViewController: UIViewController {
         searchController.searchBar.delegate = self
         
         pokemonsColectionView.register(PageCell.self, forCellWithReuseIdentifier: cellIdentifier)
-        
-        //Get list of all pokemons from server
-        httpClient.getPokemonsResource { (data) in
-            if let _ = data{
-                self.httpClient.getListOfPokemonsJSON { (pokedata) in
-                    if let _ = pokedata{
-                        self.listOfPokemons = self.httpClient.getPokemons()
-                        //Reload data to show pokemons after getting them from server
-                        DispatchQueue.main.async {
-                            self.pokemonsColectionView.reloadData()
-                        }
-                    }
-                }
-            }
-        }
+        pokemonsColectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "footerId")
         
         setupViews()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        //Setup collectionview frame and begin fetching data
+        pokemonsColectionView.frame = view.bounds
+        beginFetch()
+    }
+    
+    private func beginFetch() {
+        
+        httpClient.fetchPokemonsResource(offset: offset.description) { resource in
+            switch resource {
+            case .success(let resourcedata):
+                    var index = 1
+                    resourcedata.forEach { (result) in
+                        self.httpClient.fetchPokemons(url: result.url) { pokemonData in
+                            switch pokemonData {
+                            case .success(let pokemon):
+                                self.listOfPokemons.append(pokemon)
+                                //Display pokemons after loading list of pokemons
+                                if index == resourcedata.count{
+                                    DispatchQueue.main.async {
+                                        self.pokemonsColectionView.reloadData()
+                                    }
+                                }
+                                index += 1
+                            case .failure(_):
+                                    break
+                            }
+                        }
+                    }
+                case .failure(_):
+                        break
+                }
+        }
     }
 
     fileprivate func setupViews(){
         
-        //Informar a class de qualquer alteracao de texto dentro do UISearchBar
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         //Add searchBar to navBar
@@ -80,11 +103,6 @@ class SearchPokemonViewController: UIViewController {
         view.backgroundColor = .systemGroupedBackground
         
         view.addSubview(pokemonsColectionView)
-    
-        pokemonsColectionView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-        pokemonsColectionView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-        pokemonsColectionView.topAnchor.constraint(equalTo: view.topAnchor, constant: 8).isActive = true
-        pokemonsColectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
     }
 }
 
@@ -98,6 +116,38 @@ extension SearchPokemonViewController: UICollectionViewDelegateFlowLayout{
         let size:CGFloat = (pokemonsColectionView.frame.size.width - space) / 2.0
         return CGSize(width: size, height: size)
     }
+}
+
+extension SearchPokemonViewController: UICollectionViewDelegate{
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        //Show footer with spinner only if not fetching results
+        if !isFetching{
+            return .init(width: view.frame.width, height: 200)
+            
+        }else{
+            return CGSize.zero
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let  height = scrollView.frame.size.height
+        let contentHeight = scrollView.contentSize.height
+           let contentYoffset = scrollView.contentOffset.y
+           
+        if contentYoffset > contentHeight - height { // when you reach the bottom
+            if !isFetching{
+                //Set flag to true to avoid multiple fetching
+                isFetching = true
+                
+                //Offset for the next 20 pokemons
+                offset += 20
+                
+                beginFetch()
+            }
+        }
+        
+    }
+   
 }
 
 extension SearchPokemonViewController: UICollectionViewDataSource{
@@ -150,6 +200,27 @@ extension SearchPokemonViewController: UICollectionViewDataSource{
         navigationController?.pushViewController(detailsVC, animated: true)
     }
     
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        switch kind {
+        
+        case UICollectionView.elementKindSectionHeader:
+            let header = pokemonsColectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "headerId", for: indexPath)
+           
+            return header
+        
+        case UICollectionView.elementKindSectionFooter:
+            let footer = pokemonsColectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "footerId", for: indexPath)
+           
+            let spinner = UIActivityIndicatorView(style: .large)
+            spinner.center = footer.center
+            spinner.startAnimating()
+            footer.addSubview(spinner)
+
+            return footer
+        default:
+            assert(false, "Unexpected kind")
+        }
+    }
 }
 
 

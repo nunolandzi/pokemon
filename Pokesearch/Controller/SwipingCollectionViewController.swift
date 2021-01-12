@@ -12,7 +12,8 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
     private let reuseIdentifier = "Cell"
     let httpClient = HTTPClient()
     var listOfTopPokemons:[Pokemon] = []
-    private let topExperienceLevel:Int = 227
+    private let topExperienceLevel:Int = 220
+    private let spinner = UIActivityIndicatorView(style: .large)
     
     private let pageControl: UIPageControl = {
         let page = UIPageControl()
@@ -42,26 +43,44 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
     
     
     func setListOfPokemons() {
-        httpClient.getPokemonsResource { (data) in
-            if let _ = data{
-                self.httpClient.getListOfPokemonsJSON { (pokedata) in
-                    if let _ = pokedata{
-                        let list = self.httpClient.getPokemons()
-                        self.getTopByExperience(listOfPokemons: list)
-                        //Reload data to show pokemons after getting them from server
-                        DispatchQueue.main.async {
-                            self.pageControl.numberOfPages = self.listOfTopPokemons.count
-                            self.collectionView.reloadData()
-                            
+        var allPokemons:[Pokemon] = []
+        httpClient.fetchPokemonsResource(offset: "0") { resource in
+            DispatchQueue.main.async {
+                self.spinner.startAnimating()
+            }
+            
+            switch resource {
+            case .success(let resourcedata):
+                    var index = 1
+                    resourcedata.forEach { (result) in
+                        self.httpClient.fetchPokemons(url: result.url) { pokemonData in
+                            switch pokemonData {
+                            case .success(let pokemon):
+                                allPokemons.append(pokemon)
+                                //Display pokemons after loading list of pokemons
+                                if index == resourcedata.count{
+                                    self.getTopByExperience(listOfPokemons: allPokemons)
+                                    DispatchQueue.main.async {
+                                        self.spinner.stopAnimating()
+                                        self.pageControl.numberOfPages = self.listOfTopPokemons.count
+                                        self.collectionView.reloadData()
+                                    }
+                                }
+                                index += 1
+                            case .failure(_):
+                                    break
+                            }
                         }
                     }
+                case .failure(_):
+                        break
                 }
-            }
         }
     }
     
     
-    fileprivate func getTopByExperience(listOfPokemons:[Pokemon]){
+    func getTopByExperience(listOfPokemons:[Pokemon]){
+        //Filter pokemons based on experience level
         listOfTopPokemons = listOfPokemons.filter { (pokemon: Pokemon) -> Bool in
             return pokemon.base_experience > topExperienceLevel
           }
@@ -112,8 +131,11 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     fileprivate func setupBottomControls(){
+        spinner.center = view.center
+        
         view.backgroundColor = .systemGroupedBackground
         view.addSubview(pageControl)
+        view.addSubview(spinner)
         pageControl.heightAnchor.constraint(equalToConstant: 50).isActive = true
         pageControl.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         pageControl.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor).isActive = true

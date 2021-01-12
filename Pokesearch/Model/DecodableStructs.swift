@@ -10,10 +10,10 @@ import Foundation
 struct Resource: Decodable {
     let count: Int
     let next: String
-    let results: [Result]
+    let results: [Res]
 }
 
-struct Result: Decodable {
+struct Res: Decodable {
     let name: String
     let url: URL
 }

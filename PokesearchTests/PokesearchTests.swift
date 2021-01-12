@@ -14,19 +14,15 @@ class PokesearchTests: XCTestCase {
     
     func testTopPokemonsList(){
         sut = SwipingCollectionViewController()
+        let venusaur = Pokemon(id: 1, name: "Venusaur", image: UIImage(), weight: 10, heigt: 10, base_experience: 100, ability: "")
+        let metapod = Pokemon(id: 1, name: "metapod", image: UIImage(), weight: 10, heigt: 10, base_experience: 200, ability: "")
+        let kakuna = Pokemon(id: 1, name: "kakuna", image: UIImage(), weight: 10, heigt: 10, base_experience: 300, ability: "")
+        let pokemons = [venusaur,metapod,kakuna]
         
-        let client = sut.httpClient
-        let exp = expectation(description: "Loading pokemons")
-
-        client.getPokemonsResource { (data) in
-            if let _ = data{
-                
-                exp.fulfill()
-            }
-        }
-        let number = client.getResources().count
-        waitForExpectations(timeout: 10)
-        XCTAssertNotNil(number)
+        sut.getTopByExperience(listOfPokemons:pokemons)
+        let top = sut.listOfTopPokemons
+        
+        XCTAssertTrue(top.count == 1)
     }
     
     func testHelloWorld(){
