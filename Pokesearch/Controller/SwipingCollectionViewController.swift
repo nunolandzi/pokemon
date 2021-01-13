@@ -11,7 +11,7 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
 
     private let reuseIdentifier = "Cell"
     let httpClient = HTTPClient()
-    var listOfTopPokemons:[Pokemon] = []
+    var listOfTopPokemons:[PokemonVM] = []
     private let topExperienceLevel:Int = 220
     private let spinner = UIActivityIndicatorView(style: .large)
     
@@ -43,7 +43,7 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
     
     
     func setListOfPokemons() {
-        var allPokemons:[Pokemon] = []
+        var allPokemons:[PokemonVM] = []
         httpClient.fetchPokemonsResource(offset: "0") { resource in
             DispatchQueue.main.async {
                 self.spinner.startAnimating()
@@ -56,7 +56,7 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
                         self.httpClient.fetchPokemons(url: result.url) { pokemonData in
                             switch pokemonData {
                             case .success(let pokemon):
-                                allPokemons.append(pokemon)
+                                allPokemons.append(PokemonVM(pokemon: pokemon))
                                 //Display pokemons after loading list of pokemons
                                 if index == resourcedata.count{
                                     self.getTopByExperience(listOfPokemons: allPokemons)
@@ -79,9 +79,9 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     
-    func getTopByExperience(listOfPokemons:[Pokemon]){
+    func getTopByExperience(listOfPokemons:[PokemonVM]){
         //Filter pokemons based on experience level
-        listOfTopPokemons = listOfPokemons.filter { (pokemon: Pokemon) -> Bool in
+        listOfTopPokemons = listOfPokemons.filter { (pokemon: PokemonVM) -> Bool in
             return pokemon.base_experience > topExperienceLevel
           }
     }
@@ -89,7 +89,7 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
     
     override func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         let x = targetContentOffset.pointee.x
-        
+        //Set pagecontrol according to number of top pokemons
         pageControl.currentPage = Int(x/view.frame.width)
     }
     
@@ -100,7 +100,6 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return listOfTopPokemons.count
-        //return 4
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -108,7 +107,7 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
         
         let pokemon = listOfTopPokemons[indexPath.item]
         //cell!.backgroundColor = .blue
-        cell?.pokemon = pokemon
+        cell?.pokemonVM = pokemon
         
         return cell!
     }
@@ -117,8 +116,8 @@ class SwipingCollectionViewController: UICollectionViewController, UICollectionV
         
         let detailsVC = PokemonDetailViewController()
         let pokemon = listOfTopPokemons[indexPath.item]
-        detailsVC.navigationItem.title = pokemon.name
-        detailsVC.selectedPokemon = pokemon.tableRepresentation
+        
+        detailsVC.selectedPokemon = pokemon
         detailsVC.headerImage.image = pokemon.image
         
         navigationController?.pushViewController(detailsVC, animated: true)

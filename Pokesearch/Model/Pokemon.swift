@@ -17,19 +17,3 @@ struct Pokemon {
     let ability: String
 }
 
-
-typealias PokemonData = (title: String, value: String)
-
-extension Pokemon {
-  var tableRepresentation: [PokemonData] {
-    return [
-        ("ID", id.description),
-        ("Name", name),
-        ("Weight", weight.description),
-        ("Height", heigt.description),
-        ("Base Experience", base_experience.description),
-        ("Ability", ability)
-    ]
-  }
-}
-

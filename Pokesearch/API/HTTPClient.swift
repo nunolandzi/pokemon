@@ -9,42 +9,6 @@ import UIKit
 
 final class HTTPClient{
     private var urlString = "https://pokeapi.co/api/v2/pokemon?limit=20&offset="
-    var isPaginating = false
-    private let topExperienceLevel:Int = 226
-    var listofPokemons:[Pokemon] = []
-    
-    
-    func fetchTopPokemons(url: URL,completion: @escaping (Result<Pokemon, Error>)->Void){
-        URLSession.shared.dataTask(with: url) { (data, respone, error) in
-            guard let data = data else { return }
-            
-            do{
-                let jsonPokemons = try JSONDecoder().decode(ResourceForSpecificPokemon.self, from: data)
-                
-                let newPokemon:Pokemon?
-                
-                //Set pokemon only if base experience is more than top
-                if jsonPokemons.base_experience > self.topExperienceLevel{
-                            
-                    //Check whether pokemon has image url or not
-                    if let imageUrlString = jsonPokemons.sprites.front_default{
-                        let data = try Data(contentsOf: URL(string: imageUrlString)!)
-                        let image = UIImage(data: data)
-                        newPokemon = Pokemon(id: jsonPokemons.id, name: jsonPokemons.name, image: image!, weight: jsonPokemons.weight,heigt: jsonPokemons.height, base_experience: jsonPokemons.base_experience, ability: jsonPokemons.abilities.first!.ability.name)
-                        
-                    }else{
-                        newPokemon = Pokemon(id: jsonPokemons.id,name: jsonPokemons.name, image: UIImage(named: "pokemon")!, weight: jsonPokemons.weight, heigt: jsonPokemons.height,base_experience: jsonPokemons.base_experience,ability: jsonPokemons.abilities.first!.ability.name)
-                    }
-                    
-                    return completion(.success(newPokemon!))
-                    }
-                        
-                        }catch let jsonErr{
-                            print("Error serializing o json:", jsonErr)
-                        }
-                    }.resume()
-    }
-    
     
     func fetchPokemonsResource(offset:String, completion: @escaping (Result<[Res], Error>)->Void){
         let urlWithOffset = urlString + offset
@@ -95,10 +59,10 @@ final class HTTPClient{
                 
     }
     
-    func postFavoritePokemonJSON(pokemondata: [PokemonData]) {
+    func postFavoritePokemonJSON(pokemondata: PokemonVM) {
+        
         //Declare parameters
-        //let params = ["name":pokemondata.first?.value, "experience":pokemondata.last?.value]
-        let params = ["name":"Silva", "experience":"Nuno"]
+        let params = ["name":pokemondata.name, "experience":pokemondata.base_experience] as [String : Any]
         
         //Create Url
         let url = URL(string: "https://webhook.site/decdc200-b7e7-47d1-bedb-5ebfecc11bdf")

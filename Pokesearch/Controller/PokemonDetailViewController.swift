@@ -14,8 +14,6 @@ class PokemonDetailViewController: UIViewController {
     private var tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .grouped)
         table.backgroundColor = .clear
-        //table.contentInset = .init(top: 20, left: 16, bottom: 16, right: 16)
-        //table.separatorColor = UIColor.lightGray.withAlphaComponent(0.4)
         table.translatesAutoresizingMaskIntoConstraints = false
         
         return table
@@ -37,7 +35,7 @@ class PokemonDetailViewController: UIViewController {
     }()
     
     private let cellIdentifier = "elementosCell"
-    var selectedPokemon:[PokemonData]?
+    var selectedPokemon:PokemonVM?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,14 +44,13 @@ class PokemonDetailViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.alwaysBounceHorizontal = false
-        //tableView.bounces = false
-        //tableView.alwaysBounceVertical = false
+        
         setViews()
         // Do any additional setup after loading the view.
     }
     
     @objc func handleFavoritePokemon(sender:UIButton)  {
-        
+        //Change heart button when touched
         if sender.tag == 0{
             favoriteButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
             sender.tag = 1
@@ -84,7 +81,7 @@ class PokemonDetailViewController: UIViewController {
 
 extension PokemonDetailViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return selectedPokemon!.count
+        return (selectedPokemon?.tableRepresentation.count)!
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -95,7 +92,7 @@ extension PokemonDetailViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .value1, reuseIdentifier: cellIdentifier)
         cell.backgroundColor = .clear
-        if let pokemonData = selectedPokemon {
+        if let pokemonData = selectedPokemon?.tableRepresentation {
             let row = indexPath.row
             cell.textLabel!.text = pokemonData[row].title
             cell.detailTextLabel!.text = pokemonData[row].value

@@ -9,11 +9,10 @@ import UIKit
 
 class PageCell: UICollectionViewCell {
     
-    var pokemon: Pokemon?{
+    var pokemonVM: PokemonVM! {
         didSet{
-            guard let unrappedPokemon = pokemon else {return}
-            pokemonImageView.image = unrappedPokemon.image
-            titleLabel.text = unrappedPokemon.name
+            pokemonImageView.image = pokemonVM.image
+            titleLabel.text = pokemonVM.name
         }
     }
     

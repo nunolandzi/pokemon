@@ -11,9 +11,8 @@ class SearchPokemonViewController: UIViewController {
     
     private let cellIdentifier = "collectionCell"
     private let httpClient = HTTPClient()
-    private let isOnline = true
-    private var listOfPokemons:[Pokemon] = []
-    private var filteredPokemons:[Pokemon] = []
+    private var listOfPokemons:[PokemonVM] = []
+    private var filteredPokemons:[PokemonVM] = []
     private var isFetching = false
     private var offset = 0
     
@@ -64,19 +63,22 @@ class SearchPokemonViewController: UIViewController {
     }
     
     private func beginFetch() {
-        
+        //Fetch list of pokemons to show
         httpClient.fetchPokemonsResource(offset: offset.description) { resource in
             switch resource {
             case .success(let resourcedata):
                     var index = 1
+                //Loop trough all resources if success
                     resourcedata.forEach { (result) in
+                        //Fetch one pokemon by one and add to list of pokemons
                         self.httpClient.fetchPokemons(url: result.url) { pokemonData in
                             switch pokemonData {
                             case .success(let pokemon):
-                                self.listOfPokemons.append(pokemon)
+                                self.listOfPokemons.append(PokemonVM(pokemon: pokemon))
                                 //Display pokemons after loading list of pokemons
                                 if index == resourcedata.count{
                                     DispatchQueue.main.async {
+                                        //Reload collection when list of pokemons is complete
                                         self.pokemonsColectionView.reloadData()
                                     }
                                 }
@@ -93,7 +95,7 @@ class SearchPokemonViewController: UIViewController {
     }
 
     fileprivate func setupViews(){
-        
+        //Setup search controller
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         //Add searchBar to navBar
@@ -170,14 +172,15 @@ extension SearchPokemonViewController: UICollectionViewDataSource{
         cell?.layer.cornerRadius = 10
         
         //Set pokemon 
-        let pokemon:Pokemon
+        let pokemon:PokemonVM
         if isFiltering{
             pokemon = filteredPokemons[indexPath.item]
+            
         }else{
             pokemon = listOfPokemons[indexPath.item]
         }
         
-        cell?.pokemon = pokemon
+        cell?.pokemonVM = pokemon
        
         
         return cell!
@@ -186,15 +189,14 @@ extension SearchPokemonViewController: UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let detailsVC = PokemonDetailViewController()
         
-        let pokemon: Pokemon
+        let pokemon:PokemonVM
         if isFiltering{
             pokemon = filteredPokemons[indexPath.item]
         }else{
             pokemon = listOfPokemons[indexPath.item]
         }
         
-        detailsVC.navigationItem.title = pokemon.name
-        detailsVC.selectedPokemon = pokemon.tableRepresentation
+        detailsVC.selectedPokemon = pokemon
         detailsVC.headerImage.image = pokemon.image
         
         navigationController?.pushViewController(detailsVC, animated: true)
@@ -203,6 +205,7 @@ extension SearchPokemonViewController: UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         switch kind {
         
+        //Set header and footer view
         case UICollectionView.elementKindSectionHeader:
             let header = pokemonsColectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "headerId", for: indexPath)
            
@@ -229,7 +232,7 @@ extension SearchPokemonViewController: UISearchBarDelegate{
     
     func filterContentForSearchText(_ searchText: String, status: String? = nil) {
         //Filter reports based on searchText and puts the results in filteredReports
-        filteredPokemons = listOfPokemons.filter { (pokemon: Pokemon) -> Bool in
+        filteredPokemons = listOfPokemons.filter { (pokemon: PokemonVM) -> Bool in
             
         return pokemon.name.lowercased().contains(searchText.lowercased())
       }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E74F5DA525AF0795003BE9EE /* PokemonVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = E74F5DA425AF0795003BE9EE /* PokemonVM.swift */; };
 		E77289C925A34AB400B53DF6 /* PokesearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E77289C825A34AB400B53DF6 /* PokesearchTests.swift */; };
 		E78B7E45259E09810033DAC4 /* PokemonDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E78B7E44259E09810033DAC4 /* PokemonDetailViewController.swift */; };
 		E7912769259CAE36009879FF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7912768259CAE36009879FF /* AppDelegate.swift */; };
@@ -42,6 +43,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		E74F5DA425AF0795003BE9EE /* PokemonVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonVM.swift; sourceTree = "<group>"; };
 		E77289C625A34AB400B53DF6 /* PokesearchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PokesearchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E77289C825A34AB400B53DF6 /* PokesearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokesearchTests.swift; sourceTree = "<group>"; };
 		E77289CA25A34AB400B53DF6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 			children = (
 				E7A65C52259CD75E00A400B4 /* Pokemon.swift */,
 				E7E89CBF25A467AC00B20A62 /* DecodableStructs.swift */,
+				E74F5DA425AF0795003BE9EE /* PokemonVM.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -327,6 +330,7 @@
 				E7A65C4A259CD14D00A400B4 /* HTTPClient.swift in Sources */,
 				E78B7E45259E09810033DAC4 /* PokemonDetailViewController.swift in Sources */,
 				E7A65C5D259D336900A400B4 /* SwipingCollectionViewController.swift in Sources */,
+				E74F5DA525AF0795003BE9EE /* PokemonVM.swift in Sources */,
 				E7912769259CAE36009879FF /* AppDelegate.swift in Sources */,
 				E7E89CC025A467AC00B20A62 /* DecodableStructs.swift in Sources */,
 			);
