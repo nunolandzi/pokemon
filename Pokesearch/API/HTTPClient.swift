@@ -8,7 +8,7 @@
 import UIKit
 
 final class HTTPClient{
-    private var urlString = "https://pokeapi.co/api/v2/pokemon?limit=20&offset="
+    private var urlString = "https://pokeapi.co/api/v2/pokemon?limit=10&offset="
     
     func fetchPokemonsResource(offset:String, completion: @escaping (Result<[Res], Error>)->Void){
         let urlWithOffset = urlString + offset

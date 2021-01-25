@@ -139,7 +139,7 @@ extension SearchPokemonViewController: UICollectionViewDelegate{
         if contentYoffset > contentHeight - height { // when you reach the bottom
             if !isFetching{
                 //Set flag to true to avoid multiple fetching
-                isFetching = true
+                //isFetching = true
                 
                 //Offset for the next 20 pokemons
                 offset += 20
